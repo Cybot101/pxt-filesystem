@@ -55,6 +55,7 @@ void appendLine(StringData *filename, StringData *text)
     f.append(t);
     f.append("\r\n");
     f.close();
+    uBit.serial.send((uint8_t*)"AppendLine", 10, SYNC_SPINWAIT);
 }
 
 /**
@@ -81,6 +82,7 @@ void appendString(StringData *filename, StringData *text)
 //% blockId="fs_write_to_serial" block="file %filename|read to serial"
 //% weight=80
 void readToSerial(StringData* filename) {
+    uBit.serial.send((uint8_t*)"ReadToSer", 10, SYNC_SPINWAIT);
     initFileSystem();
     ManagedString fn(filename);
     MicroBitFile f(fn);
