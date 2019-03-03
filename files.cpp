@@ -50,13 +50,16 @@ void appendLine(String filename, String text)
 {
     int res = 0;
     initFileSystem();
-    MicroBitFile f(ManagedString("test.t"));//MSTR(filename));
+    MicroBitFile f(MSTR(filename));
     
     res = f.append(MSTR(text));
     f.append("\r\n");
     f.close();
 
-    uBit.serial.send(ManagedString(res), SYNC_SPINWAIT);
+    if (res < 0) {
+        uBit.serial.send("Err:", SYNC_SPINWAIT);
+        uBit.serial.send(ManagedString(res), SYNC_SPINWAIT);
+    }
 }
 
 /**
@@ -82,25 +85,6 @@ void appendString(String filename, String text)
 //% weight=80
 void readToSerial(String filename) {
 
-    // MicroBitFileSystem* fs = MicroBitFileSystem::defaultFileSystem;//MSTR(filename).toCharArray()
-    // int fd = fs->open("test.t", MB_READ);
-    // if(fd<0) {
-    //     uBit.serial.send("file open error:", SYNC_SPINWAIT);
-    //     uBit.serial.send(ManagedString(fd), SYNC_SPINWAIT);
-    //     return;
-    // }
-
-    // uint8_t buf[32];
-    // int read = 0;
-    // while((read = fs->read(fd, buf, sizeof(buf) * sizeof(uint8_t))) > 0) {
-    //      uBit.serial.send(buf, read * sizeof(uint8_t), SYNC_SPINWAIT);
-    // }  
-
-    // uBit.serial.send(ManagedString(read), SYNC_SPINWAIT);
-
-    // fs->close(fd);
-
-
     initFileSystem();
     MicroBitFile f(MSTR(filename));
     char buf[32];
@@ -108,7 +92,7 @@ void readToSerial(String filename) {
     while((read = f.read(buf, sizeof(buf) * sizeof(char))) > 0) {
          uBit.serial.send((uint8_t*)buf, read * sizeof(char), SYNC_SPINWAIT);
     }
-    uBit.serial.send(ManagedString(read), SYNC_SPINWAIT);
+    // uBit.serial.send(ManagedString(read), SYNC_SPINWAIT);
     f.close();    
 }
 
