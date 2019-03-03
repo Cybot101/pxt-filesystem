@@ -46,16 +46,17 @@ void initFileSystem()
     */
 //% blockId="files_append_line" block="file %filename|append line %text"
 //% blockExternalInputs=1 weight=90 blockGap=8
-void appendLine(StringData *filename, StringData *text)
+void appendLine(String filename, String text)
 {
+    int res = 0;
     initFileSystem();
-    ManagedString fn(filename);
-    ManagedString t(text);
-    MicroBitFile f(fn);
-    f.append(t);
+    MicroBitFile f(ManagedString("test.t"));//MSTR(filename));
+    
+    res = f.append(MSTR(text));
     f.append("\r\n");
     f.close();
-    //uBit.serial.send((uint8_t*)"AppendLine", 10, SYNC_SPINWAIT);
+
+    uBit.serial.send(ManagedString(res), SYNC_SPINWAIT);
 }
 
 /**
@@ -65,13 +66,11 @@ void appendLine(StringData *filename, StringData *text)
     */
 //% blockId="fs_append_string" block="file %filename|append string %text"
 //% blockExternalInputs=1 weight=86 blockGap=8
-void appendString(StringData *filename, StringData *text)
+void appendString(String filename, String text)
 {
     initFileSystem();
-    ManagedString fn(filename);
-    ManagedString t(text);
-    MicroBitFile f(fn);
-    f.append(t);
+    MicroBitFile f(MSTR(filename));
+    f.append(MSTR(text));
     f.close();
 }
 
@@ -81,16 +80,35 @@ void appendString(StringData *filename, StringData *text)
 */
 //% blockId="fs_write_to_serial" block="file %filename|read to serial"
 //% weight=80
-void readToSerial(StringData* filename) {
-    //uBit.serial.send((uint8_t*)"ReadToSer", 10, SYNC_SPINWAIT);
+void readToSerial(String filename) {
+
+    // MicroBitFileSystem* fs = MicroBitFileSystem::defaultFileSystem;//MSTR(filename).toCharArray()
+    // int fd = fs->open("test.t", MB_READ);
+    // if(fd<0) {
+    //     uBit.serial.send("file open error:", SYNC_SPINWAIT);
+    //     uBit.serial.send(ManagedString(fd), SYNC_SPINWAIT);
+    //     return;
+    // }
+
+    // uint8_t buf[32];
+    // int read = 0;
+    // while((read = fs->read(fd, buf, sizeof(buf) * sizeof(uint8_t))) > 0) {
+    //      uBit.serial.send(buf, read * sizeof(uint8_t), SYNC_SPINWAIT);
+    // }  
+
+    // uBit.serial.send(ManagedString(read), SYNC_SPINWAIT);
+
+    // fs->close(fd);
+
+
     initFileSystem();
-    ManagedString fn(filename);
-    MicroBitFile f(fn);
+    MicroBitFile f(MSTR(filename));
     char buf[32];
     int read = 0;
     while((read = f.read(buf, sizeof(buf) * sizeof(char))) > 0) {
          uBit.serial.send((uint8_t*)buf, read * sizeof(char), SYNC_SPINWAIT);
-    }   
+    }
+    uBit.serial.send(ManagedString(read), SYNC_SPINWAIT);
     f.close();    
 }
 
@@ -100,11 +118,10 @@ void readToSerial(StringData* filename) {
     */
 //% blockId="fs_remove" block="file remove %filename"
 //% weight=80 advanced=true blockGap=8
-void remove(StringData *filename)
+void remove(String filename)
 {
     initFileSystem();
-    ManagedString fn(filename);
-    MicroBitFileSystem::defaultFileSystem->remove(fn.toCharArray());
+    MicroBitFileSystem::defaultFileSystem->remove(MSTR(filename).toCharArray());
 }
 
 /**
@@ -113,10 +130,9 @@ void remove(StringData *filename)
 */
 //% advanced=true weight=10
 //% blockId=files_create_directory block="files create directory %name"
-void createDirectory(StringData* name) {
+void createDirectory(String name) {
     initFileSystem();
-    ManagedString fn(name);
-    MicroBitFileSystem::defaultFileSystem->createDirectory(fn.toCharArray());
+    MicroBitFileSystem::defaultFileSystem->createDirectory(MSTR(name).toCharArray());
 }
 
 /**
@@ -125,10 +141,10 @@ void createDirectory(StringData* name) {
 */
 //% blockId=settings_read_number block="settings read number %name"
 //% weight=19
-int settingsReadNumber(StringData* name) {
+int settingsReadNumber(String name) {
     initFileSystem();
     MicroBitFileSystem::defaultFileSystem->createDirectory("settings");
-    MicroBitFile f("settings/" + ManagedString(name), MB_READ);
+    MicroBitFile f("settings/" + MSTR(name), MB_READ);
     if (!f.isValid()) 
         return -1;
     ManagedString v;
@@ -144,10 +160,9 @@ int settingsReadNumber(StringData* name) {
 *
 */
 //% weight=0 advanced=true
-int fsOpen(StringData* path) {
+int fsOpen(String path) {
     initFileSystem();
-    ManagedString fn(path);
-    return MicroBitFileSystem::defaultFileSystem->open(fn.toCharArray(), MB_READ|MB_WRITE|MB_CREAT);
+    return MicroBitFileSystem::defaultFileSystem->open(MSTR(path).toCharArray(), MB_READ|MB_WRITE|MB_CREAT);
 }
 
 /**
@@ -176,10 +191,9 @@ int fsClose(int fd) {
 *
 */
 //% weight=0 advanced=true
-int fsRemove(StringData* name) {
+int fsRemove(String name) {
     initFileSystem();
-    ManagedString fn(name);
-    return MicroBitFileSystem::defaultFileSystem->remove(fn.toCharArray());
+    return MicroBitFileSystem::defaultFileSystem->remove(MSTR(name).toCharArray());
 }
 
 /**
@@ -198,12 +212,12 @@ int fsSeek(int fd, int offset, int flags) {
 *
 */
 //% weight=0 advanced=true
-int fsWriteString(int fd, StringData* text) {
+int fsWriteString(int fd, String text) {
     if (fd < 0) return MICROBIT_NOT_SUPPORTED;
 
     initFileSystem();
-    ManagedString s(text);
-    return MicroBitFileSystem::defaultFileSystem->write(fd, (uint8_t*)s.toCharArray(), s.length());
+    ManagedString t = MSTR(text);
+    return MicroBitFileSystem::defaultFileSystem->write(fd, (uint8_t*)t.toCharArray(), t.length());
 }
 
 /**
